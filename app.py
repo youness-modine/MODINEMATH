@@ -1,19 +1,14 @@
 import streamlit as st
 import requests
 import google.generativeai as genai
-from fpdf import FPDF
 
-# --- 1. جلب وتنظيف السوارت أوتوماتيكياً ---
-try:
-    # هاد العملية كتحيد أي Enter أو Space زايد في السوارت
-    GROQ_KEY = st.secrets["GROQ_API_KEY"].strip().replace("\n", "").replace(" ", "")
-    GEMINI_KEY = st.secrets["GEMINI_API_KEY"].strip().replace("\n", "").replace(" ", "")
-except Exception as e:
-    st.error("Missing API Keys in Secrets!")
-    st.stop()
+# --- 1. جلب وتنظيف السوارت (حماية من الفراغات) ---
+GROQ_KEY = st.secrets["GROQ_API_KEY"].strip().replace("\n", "").replace(" ", "")
+GEMINI_KEY = st.secrets["GEMINI_API_KEY"].strip().replace("\n", "").replace(" ", "")
 
-# --- 2. إعداد العقول ---
+# --- 2. إعداد Gemini ---
 genai.configure(api_key=GEMINI_KEY)
+# التعديل لضمان التوافق مع v1beta
 gemini_model = genai.GenerativeModel('gemini-1.5-pro')
 
 def solve_with_deepseek(prompt):
@@ -21,38 +16,38 @@ def solve_with_deepseek(prompt):
     headers = {"Authorization": f"Bearer {GROQ_KEY}", "Content-Type": "application/json"}
     payload = {
         "model": "deepseek-r1-distill-llama-70b",
-        "messages": [{"role": "system", "content": "You are MODINEMATH. Solve math with detailed LaTeX proofs."},
+        "messages": [{"role": "system", "content": "You are MODINEMATH. Use LaTeX for math proofs."},
                      {"role": "user", "content": prompt}]
     }
     response = requests.post(url, headers=headers, json=payload, timeout=60)
-    if response.status_code == 200:
-        return response.json()['choices'][0]['message']['content']
-    else:
-        return f"Groq Error {response.status_code}: {response.text}"
+    return response.json()['choices'][0]['message']['content']
 
 # --- 3. الواجهة ---
 st.markdown("<h1 style='text-align: center; color: #00bcff;'>ζ MODINEMATH</h1>", unsafe_allow_html=True)
 
-uploaded_files = st.file_uploader("Upload Math TD (PDF/Images)", type=['pdf', 'png', 'jpg', 'jpeg'], accept_multiple_files=True)
-user_input = st.text_area("Question/Prompt:", placeholder="Describe the math problem...", height=100)
+uploaded_files = st.file_uploader("Upload TD (PDF/Images)", type=['pdf', 'png', 'jpg', 'jpeg'], accept_multiple_files=True)
+user_input = st.text_area("Question:", height=100)
 
 if st.button("IGNITE SOLVER ✨"):
     if user_input or uploaded_files:
-        with st.spinner("Processing the Cosmic Knowledge..."):
+        with st.spinner("Analyzing the Cosmos..."):
             try:
                 if uploaded_files:
-                    # استخدام Gemini للملفات
-                    contents = [user_input if user_input else "Analyse et résous."]
+                    # بناء قائمة المحتوى بشكل صحيح لـ Gemini
+                    contents = []
+                    prompt_text = user_input if user_input else "Analyse ce document et résous les exercices."
+                    contents.append(prompt_text)
+                    
                     for f in uploaded_files:
                         contents.append({"mime_type": f.type, "data": f.read()})
+                    
+                    # استدعاء الموديل
                     response = gemini_model.generate_content(contents)
                     final_ans = response.text
                 else:
-                    # استخدام DeepSeek-R1 للنصوص
                     final_ans = solve_with_deepseek(user_input)
                 
-                st.markdown(f'<div style="color:white; background:#111; padding:20px; border-radius:10px; border-left:5px solid #00bcff;">{final_ans}</div>', unsafe_allow_html=True)
+                st.markdown(f'<div style="color:white; background:#111; padding:20px; border-radius:10px;">{final_ans}</div>', unsafe_allow_html=True)
             except Exception as e:
-                st.error(f"Error: {str(e)}")
-
-st.markdown("<p style='text-align:center; color:gray; font-size:10px;'>V15.0 | New Key Auth | Youness Modine</p>", unsafe_allow_html=True)
+                # إذا رجع الخطأ 404، غانعرفو بلي المشكل في الساروت أو الموديل
+                st.error(f"Cosmos Error: {str(e)}")
