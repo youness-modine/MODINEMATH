@@ -3,7 +3,7 @@ import requests
 import google.generativeai as genai
 from fpdf import FPDF
 
-# --- 1. إعدادات الصفحة والهوية ---
+# --- 1. إعدادات الصفحة ---
 st.set_page_config(page_title="MODINEMATH COSMOS", page_icon="ζ", layout="wide")
 
 st.markdown("""
@@ -24,13 +24,15 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # --- 2. إعداد العقول (APIs) ---
+# تأكد من وضع السوارت بشكل صحيح في Secrets (سطر واحد لكل ساروت)
 GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
 GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
 
 genai.configure(api_key=GEMINI_API_KEY)
 
-# التعديل الصحيح لمسار الموديل
-gemini_model = genai.GenerativeModel('models/gemini-1.5-pro-latest')
+# استخدام التسمية الأكثر استقراراً لتفادي خطأ 404
+# جربنا 'gemini-1.5-pro-latest' و 'models/gemini-1.5-pro'، هادي هي اللي غاتخدم دابا:
+gemini_model = genai.GenerativeModel('gemini-1.5-pro')
 
 def solve_with_deepseek(prompt):
     url = "https://api.groq.com/openai/v1/chat/completions"
@@ -54,9 +56,10 @@ if st.button("IGNITE SOLVER ✨"):
         with st.spinner("Analyzing the Cosmic Data..."):
             try:
                 if uploaded_files:
-                    # منطق Gemini المصلح لترتيب المحتوى
+                    # بناء المحتوى لـ Gemini
                     contents = []
-                    prompt_text = user_input if user_input else "Analyse ce document mathématique et résous les exercices."
+                    # إضافة النص أولاً كتعليمات واضحة
+                    prompt_text = user_input if user_input else "Analyse ce document mathématique et résous les exercices de manière détaillée."
                     contents.append(prompt_text)
                     
                     for f in uploaded_files:
@@ -66,23 +69,27 @@ if st.button("IGNITE SOLVER ✨"):
                             "data": file_bytes
                         })
                     
-                    # استدعاء Gemini بالمسار الجديد
+                    # طلب الحل من Gemini مع معالجة الأخطاء المباشرة
                     response = gemini_model.generate_content(contents)
                     final_ans = response.text
                 else:
-                    # ذكاء DeepSeek-R1 للمسائل النصية
+                    # طلب الحل من DeepSeek-R1 (عبر Groq)
                     final_ans = solve_with_deepseek(user_input)
                 
                 st.markdown(f'<div class="response-container">{final_ans}</div>', unsafe_allow_html=True)
                 
-                # تصدير PDF
+                # إنشاء ملف PDF للتحميل
                 pdf = FPDF()
                 pdf.add_page()
                 pdf.set_font("Arial", size=12)
-                pdf.multi_cell(0, 10, txt=final_ans.encode('latin-1', 'replace').decode('latin-1'))
+                # تنظيف النص ليتناسب مع ترميز Latin-1
+                clean_text = final_ans.encode('latin-1', 'replace').decode('latin-1')
+                pdf.multi_cell(0, 10, txt=clean_text)
                 st.download_button("📥 Download Solution PDF", data=pdf.output(dest='S').encode('latin-1'), file_name="MODINEMATH_Solution.pdf")
             
             except Exception as e:
+                # عرض الخطأ بشكل مفصل للمساعدة في التشخيص
                 st.error(f"Cosmos Connection Error: {str(e)}")
+                st.info("Tip: If you see 404, check the model name in the code or the API key in Secrets.")
 
-st.markdown("<p style='text-align:center; color:rgba(255,255,255,0.1);'>V14.3 | Stable Hybrid | Youness Modine</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:center; color:rgba(255,255,255,0.1);'>V14.4 | Final Stable Hybrid | Youness Modine</p>", unsafe_allow_html=True)
