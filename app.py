@@ -3,7 +3,7 @@ import requests
 import google.generativeai as genai
 from fpdf import FPDF
 
-# --- 1. إعدادات الصفحة ---
+# --- 1. إعدادات الصفحة والهوية ---
 st.set_page_config(page_title="MODINEMATH COSMOS", page_icon="ζ", layout="wide")
 
 st.markdown("""
@@ -24,15 +24,13 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # --- 2. إعداد العقول (APIs) ---
-# تأكد من وضع السوارت بشكل صحيح في Secrets (سطر واحد لكل ساروت)
 GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
 GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
 
 genai.configure(api_key=GEMINI_API_KEY)
 
-# استخدام التسمية الأكثر استقراراً لتفادي خطأ 404
-# جربنا 'gemini-1.5-pro-latest' و 'models/gemini-1.5-pro'، هادي هي اللي غاتخدم دابا:
-gemini_model = genai.GenerativeModel('gemini-1.5-pro')
+# التعديل المطلوب لضمان التوافق مع v1beta وتفادي خطأ 404
+gemini_model = genai.GenerativeModel(model_name='gemini-1.5-pro')
 
 def solve_with_deepseek(prompt):
     url = "https://api.groq.com/openai/v1/chat/completions"
@@ -42,8 +40,11 @@ def solve_with_deepseek(prompt):
         "messages": [{"role": "system", "content": "You are MODINEMATH. Provide rigorous step-by-step math proofs in French or English with LaTeX."},
                      {"role": "user", "content": prompt}]
     }
-    response = requests.post(url, headers=headers, json=payload)
-    return response.json()['choices'][0]['message']['content']
+    try:
+        response = requests.post(url, headers=headers, json=payload, timeout=60)
+        return response.json()['choices'][0]['message']['content']
+    except Exception as e:
+        return f"Error connecting to DeepSeek-R1: {str(e)}"
 
 # --- 3. الواجهة ---
 st.markdown('<div class="zeta-header">ζ MODINEMATH</div>', unsafe_allow_html=True)
@@ -56,9 +57,8 @@ if st.button("IGNITE SOLVER ✨"):
         with st.spinner("Analyzing the Cosmic Data..."):
             try:
                 if uploaded_files:
-                    # بناء المحتوى لـ Gemini
+                    # منطق Gemini للملفات الضخمة
                     contents = []
-                    # إضافة النص أولاً كتعليمات واضحة
                     prompt_text = user_input if user_input else "Analyse ce document mathématique et résous les exercices de manière détaillée."
                     contents.append(prompt_text)
                     
@@ -69,27 +69,24 @@ if st.button("IGNITE SOLVER ✨"):
                             "data": file_bytes
                         })
                     
-                    # طلب الحل من Gemini مع معالجة الأخطاء المباشرة
                     response = gemini_model.generate_content(contents)
                     final_ans = response.text
                 else:
-                    # طلب الحل من DeepSeek-R1 (عبر Groq)
+                    # منطق DeepSeek-R1 للمسائل المكتوبة
                     final_ans = solve_with_deepseek(user_input)
                 
                 st.markdown(f'<div class="response-container">{final_ans}</div>', unsafe_allow_html=True)
                 
-                # إنشاء ملف PDF للتحميل
+                # تصدير PDF
                 pdf = FPDF()
                 pdf.add_page()
                 pdf.set_font("Arial", size=12)
-                # تنظيف النص ليتناسب مع ترميز Latin-1
                 clean_text = final_ans.encode('latin-1', 'replace').decode('latin-1')
                 pdf.multi_cell(0, 10, txt=clean_text)
                 st.download_button("📥 Download Solution PDF", data=pdf.output(dest='S').encode('latin-1'), file_name="MODINEMATH_Solution.pdf")
             
             except Exception as e:
-                # عرض الخطأ بشكل مفصل للمساعدة في التشخيص
                 st.error(f"Cosmos Connection Error: {str(e)}")
-                st.info("Tip: If you see 404, check the model name in the code or the API key in Secrets.")
+                st.info("Ensure GEMINI_API_KEY is correct in your Secrets.")
 
-st.markdown("<p style='text-align:center; color:rgba(255,255,255,0.1);'>V14.4 | Final Stable Hybrid | Youness Modine</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:center; color:rgba(255,255,255,0.1);'>V14.5 | Stable Hybrid Model | Youness Modine</p>", unsafe_allow_html=True)
