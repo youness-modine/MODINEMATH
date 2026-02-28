@@ -65,19 +65,13 @@ st.markdown("""
     <div class="particle" style="left:15%; animation-duration: 20s, 10s; animation-delay: 8s, 0s;">√</div>
     """, unsafe_allow_html=True)
 
-# --- 3. محرك Groq (النسخة المستقرة بدون Stream) ---
+# --- 3. محرك Groq (The Newest Model) ---
 GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
 
 def generate_cosmos_ans(prompt):
     url = "https://api.groq.com/openai/v1/chat/completions"
     headers = {"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"}
     payload = {
-        "model": "llama-3.3-70b-versatile",
-       def generate_cosmos_ans(prompt):
-    url = "https://api.groq.com/openai/v1/chat/completions"
-    headers = {"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"}
-    payload = {
-        # تحديث الموديل للنسخة الجديدة المدعومة
         "model": "llama-3.3-70b-versatile",
         "messages": [{"role": "system", "content": "You are MODINEMATH, a math expert. Use LaTeX."},
                      {"role": "user", "content": prompt}]
@@ -87,7 +81,6 @@ def generate_cosmos_ans(prompt):
         if response.status_code == 200:
             return response.json()['choices'][0]['message']['content']
         else:
-            # دابا غايبين ليك الخطأ بوضوح إذا كان شي مشكل آخر
             return f"Error: {response.status_code} - {response.text}"
     except Exception as e:
         return f"Connection Error: {str(e)}"
@@ -104,8 +97,6 @@ with col2:
         if user_input:
             with st.spinner("Analyzing the Cosmos..."):
                 ans = generate_cosmos_ans(user_input)
-                # عرض النتيجة النهائية باللون الأبيض الصافي
                 st.markdown(f'<div style="color:#ffffff; background: rgba(255,255,255,0.05); padding: 20px; border-radius: 15px;">{ans}</div>', unsafe_allow_html=True)
 
-st.markdown("<br><br><p style='text-align:center; color:rgba(255,255,255,0.2);'>V12.5 | Stable Engine | Youness Modine</p>", unsafe_allow_html=True)
-
+st.markdown("<br><br><p style='text-align:center; color:rgba(255,255,255,0.2);'>V12.6 | Llama 3.3 Edition | Youness Modine</p>", unsafe_allow_html=True)
