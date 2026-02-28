@@ -29,7 +29,7 @@ GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
 
 genai.configure(api_key=GEMINI_API_KEY)
 # التأكد من استخدام الموديل الصحيح Gemini 1.5 Pro للملفات
-gemini_model = genai.GenerativeModel('gemini-1.5-pro')
+gemini_model = genai.GenerativeModel('models/gemini-1.5-pro-latest')
 
 def solve_with_deepseek(prompt):
     url = "https://api.groq.com/openai/v1/chat/completions"
@@ -53,24 +53,22 @@ if st.button("IGNITE SOLVER ✨"):
         with st.spinner("Analyzing the Cosmic Data..."):
             try:
                 if uploaded_files:
-                    # منطق Gemini المصلح للملفات
-                    contents = []
-                    if user_input:
-                        contents.append(user_input)
-                    else:
-                        contents.append("Solve all math exercises in these documents with detailed steps.")
-                    
-                    for f in uploaded_files:
-                        file_bytes = f.read()
-                        contents.append({"mime_type": f.type, "data": file_bytes})
-                    
-                    # استدعاء Gemini لمعالجة الملفات
-                    response = gemini_model.generate_content(contents)
-                    final_ans = response.text
-                else:
-                    # استدعاء DeepSeek-R1 للذكاء الرياضي الصرف
-                    final_ans = solve_with_deepseek(user_input)
-                
+    contents = []
+    # ضروري نزيدو نص مع الملفات باش Gemini يعرف شنو يدير
+    prompt_text = user_input if user_input else "Analyse ce document mathématique et résous les exercices."
+    contents.append(prompt_text)
+    
+    for f in uploaded_files:
+        file_bytes = f.read()
+        contents.append({
+            "mime_type": f.type,
+            "data": file_bytes
+        })
+    
+    # استدعاء الموديل بالمسار الصحيح
+    response = gemini_model.generate_content(contents)
+    final_ans = response.text
+            
                 st.markdown(f'<div class="response-container">{final_ans}</div>', unsafe_allow_html=True)
                 
                 # تصدير PDF مصلح
@@ -84,3 +82,4 @@ if st.button("IGNITE SOLVER ✨"):
                 st.error(f"Cosmos Connection Error: {str(e)}")
 
 st.markdown("<p style='text-align:center; color:rgba(255,255,255,0.1);'>V14.2 | Hybrid Logic | Youness Modine</p>", unsafe_allow_html=True)
+
