@@ -27,12 +27,18 @@ st.markdown("""
         margin-top: 30px;
     }
 
-    /* أنيميشن الرموز الرياضية الطائرة */
+    /* أنيميشن الرموز والأشكال الإبداعية */
     @keyframes float {
-        0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
-        10% { opacity: 0.4; }
-        90% { opacity: 0.4; }
-        100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
+        0% { 
+            transform: translateY(110vh) rotate(0deg) scale(1); 
+            opacity: 0; 
+        }
+        20% { opacity: 0.4; }
+        80% { opacity: 0.4; }
+        100% { 
+            transform: translateY(-20vh) rotate(720deg) scale(1.2); 
+            opacity: 0; 
+        }
     }
 
     .particle {
@@ -41,9 +47,11 @@ st.markdown("""
         color: #00d2ff;
         font-family: 'serif';
         font-weight: bold;
+        font-size: 32px; 
         user-select: none;
         pointer-events: none;
         z-index: 0;
+        text-shadow: 0 0 10px rgba(0, 210, 255, 0.5);
     }
 
     /* مظهر الأزرار التفاعلي */
@@ -64,57 +72,22 @@ st.markdown("""
         box-shadow: 0 0 40px #00d2ff !important;
         transform: scale(1.05) !important;
     }
-
-.particle {
-        position: fixed;
-        top: 0;
-        color: #00d2ff;
-        font-family: 'serif';
-        font-weight: bold;
-        /* حجم متوسط وأنيق */
-        font-size: 32px; 
-        user-select: none;
-        pointer-events: none;
-        z-index: 0;
-        /* إضافة ظل خفيف للرموز لتبدو متوهجة */
-        text-shadow: 0 0 10px rgba(0, 210, 255, 0.5);
-    }
-
-    @keyframes float {
-        0% { 
-            transform: translateY(110vh) rotate(0deg) scale(1); 
-            opacity: 0; 
-        }
-        20% { opacity: 0.4; }
-        80% { opacity: 0.4; }
-        100% { 
-            /* حركة دورانية وتغيير في الحجم لإعطاء عمق للمكان */
-            transform: translateY(-20vh) rotate(720deg) scale(1.2); 
-            opacity: 0; 
-        }
-    }
-
-    
     </style>
-/* الرموز الرياضية المضافة */
+
     <div class="particle" style="left:5%; animation: float 14s infinite linear;">β</div>
     <div class="particle" style="left:18%; animation: float 16s infinite linear; animation-delay: 3s;">Γ</div>
     <div class="particle" style="left:35%; animation: float 13s infinite linear; animation-delay: 1s;">∇</div>
     <div class="particle" style="left:55%; animation: float 19s infinite linear; animation-delay: 6s;">[M]</div>
     <div class="particle" style="left:75%; animation: float 15s infinite linear; animation-delay: 2s;">Π</div>
     
-    /* الأشكال الهندسية المتحركة */
     <div class="particle" style="left:12%; animation: float 22s infinite linear; font-size: 40px; opacity: 0.2;">○</div>
     <div class="particle" style="left:40%; animation: float 25s infinite linear; font-size: 35px; opacity: 0.2; animation-delay: 4s;">△</div>
     <div class="particle" style="left:60%; animation: float 20s infinite linear; font-size: 30px; opacity: 0.2; animation-delay: 7s;">□</div>
     <div class="particle" style="left:80%; animation: float 24s infinite linear; font-size: 45px; opacity: 0.2; animation-delay: 5s;">▭</div>
 
-    /* الرموز الأصلية (للحفاظ على التوازن) */
     <div class="particle" style="left:22%; animation: float 12s infinite linear;">∫</div>
     <div class="particle" style="left:50%; animation: float 18s infinite linear; animation-delay: 5s;">∞</div>
-    <div class="particle" style="left:10%; animation: float 12s infinite linear;">∫</div>
-    <div class="particle" style="left:25%; animation: float 15s infinite linear; animation-delay: 2s;">ζ</div>
-    <div class="particle" style="left:45%; animation: float 18s infinite linear; animation-delay: 5s;">∞</div>
+    <div class="particle" style="left:10%; animation: float 12s infinite linear;">ζ</div>
     <div class="particle" style="left:65%; animation: float 14s infinite linear; animation-delay: 1s;">Σ</div>
     <div class="particle" style="left:85%; animation: float 16s infinite linear; animation-delay: 4s;">π</div>
     <div class="particle" style="left:15%; animation: float 20s infinite linear; animation-delay: 8s;">√</div>
@@ -146,7 +119,6 @@ def generate_cosmos_ans(prompt):
 st.markdown('<div class="zeta-header">ζ MODINEMATH</div>', unsafe_allow_html=True)
 st.markdown("<p style='text-align:center; color:#8892b0;'>PROBING THE LIMITS OF MATHEMATICAL INTELLIGENCE</p>", unsafe_allow_html=True)
 
-# Input area (مثل Gemini)
 user_input = st.text_area("", placeholder="Ask the Cosmic Encyclopedia...", height=120, label_visibility="collapsed")
 
 col1, col2, col3 = st.columns([1, 0.6, 1])
@@ -160,5 +132,4 @@ with col2:
                 ans_container.markdown(f'<div style="color:#00d2ff;">{full_ans}▌</div>', unsafe_allow_html=True)
             ans_container.markdown(full_ans)
 
-st.markdown("<br><br><p style='text-align:center; color:rgba(255,255,255,0.1);'>V12.1 | Developed by Youness Modine | UIT</p>", unsafe_allow_html=True)
-
+st.markdown("<br><br><p style='text-align:center; color:rgba(255,255,255,0.1);'>V12.2 | Developed by Youness Modine | UIT</p>", unsafe_allow_html=True)
