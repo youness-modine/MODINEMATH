@@ -72,7 +72,13 @@ def generate_cosmos_ans(prompt):
     url = "https://api.groq.com/openai/v1/chat/completions"
     headers = {"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"}
     payload = {
-        "model": "llama3-70b-8192",
+        "model": "llama-3.3-70b-versatile",
+       def generate_cosmos_ans(prompt):
+    url = "https://api.groq.com/openai/v1/chat/completions"
+    headers = {"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"}
+    payload = {
+        # تحديث الموديل للنسخة الجديدة المدعومة
+        "model": "llama-3.3-70b-versatile",
         "messages": [{"role": "system", "content": "You are MODINEMATH, a math expert. Use LaTeX."},
                      {"role": "user", "content": prompt}]
     }
@@ -81,6 +87,7 @@ def generate_cosmos_ans(prompt):
         if response.status_code == 200:
             return response.json()['choices'][0]['message']['content']
         else:
+            # دابا غايبين ليك الخطأ بوضوح إذا كان شي مشكل آخر
             return f"Error: {response.status_code} - {response.text}"
     except Exception as e:
         return f"Connection Error: {str(e)}"
@@ -101,3 +108,4 @@ with col2:
                 st.markdown(f'<div style="color:#ffffff; background: rgba(255,255,255,0.05); padding: 20px; border-radius: 15px;">{ans}</div>', unsafe_allow_html=True)
 
 st.markdown("<br><br><p style='text-align:center; color:rgba(255,255,255,0.2);'>V12.5 | Stable Engine | Youness Modine</p>", unsafe_allow_html=True)
+
