@@ -3,3 +3,4 @@ requests
 pymupdf
 fpdf
 pillow
+streamlit-lottie
