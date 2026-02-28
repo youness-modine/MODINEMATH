@@ -7,15 +7,13 @@ from fpdf import FPDF
 # --- 1. إعدادات الصفحة ---
 st.set_page_config(page_title="MODINEMATH COSMOS", page_icon="ζ", layout="wide")
 
-# --- 2. سحر الأنيميشن المتقدم (HTML + CSS Injection) ---
+# --- 2. سحر الأنيميشن المتقدم (Nebula Colors Edition) ---
 st.markdown("""
     <style>
-    /* خلفية Gemini/Grok العميقة */
     .stApp {
         background-color: #050505 !important;
     }
 
-    /* تأثير التوهج للعنوان */
     .zeta-header {
         text-align: center;
         font-size: 75px;
@@ -27,7 +25,13 @@ st.markdown("""
         margin-top: 30px;
     }
 
-    /* أنيميشن الرموز والأشكال الإبداعية */
+    /* أنيميشن الألوان المتغيرة (Color Shift) */
+    @keyframes colorChange {
+        0% { color: #00d2ff; text-shadow: 0 0 10px #00d2ff; }
+        50% { color: #9b72cb; text-shadow: 0 0 20px #9b72cb; }
+        100% { color: #00d2ff; text-shadow: 0 0 10px #00d2ff; }
+    }
+
     @keyframes float {
         0% { 
             transform: translateY(110vh) rotate(0deg) scale(1); 
@@ -44,17 +48,16 @@ st.markdown("""
     .particle {
         position: fixed;
         top: 0;
-        color: #00d2ff;
         font-family: 'serif';
         font-weight: bold;
         font-size: 32px; 
         user-select: none;
         pointer-events: none;
         z-index: 0;
-        text-shadow: 0 0 10px rgba(0, 210, 255, 0.5);
+        /* تفعيل أنيميشن تغيير الألوان */
+        animation: float 15s infinite linear, colorChange 8s infinite ease-in-out;
     }
 
-    /* مظهر الأزرار التفاعلي */
     div.stButton > button {
         background: transparent !important;
         color: #00d2ff !important;
@@ -74,23 +77,23 @@ st.markdown("""
     }
     </style>
 
-    <div class="particle" style="left:5%; animation: float 14s infinite linear;">β</div>
-    <div class="particle" style="left:18%; animation: float 16s infinite linear; animation-delay: 3s;">Γ</div>
-    <div class="particle" style="left:35%; animation: float 13s infinite linear; animation-delay: 1s;">∇</div>
-    <div class="particle" style="left:55%; animation: float 19s infinite linear; animation-delay: 6s;">[M]</div>
-    <div class="particle" style="left:75%; animation: float 15s infinite linear; animation-delay: 2s;">Π</div>
+    <div class="particle" style="left:5%; animation-duration: 14s, 7s;">β</div>
+    <div class="particle" style="left:18%; animation-duration: 16s, 9s; animation-delay: 3s, 0s;">Γ</div>
+    <div class="particle" style="left:35%; animation-duration: 13s, 6s; animation-delay: 1s, 0s;">∇</div>
+    <div class="particle" style="left:55%; animation-duration: 19s, 10s; animation-delay: 6s, 0s;">[M]</div>
+    <div class="particle" style="left:75%; animation-duration: 15s, 8s; animation-delay: 2s, 0s;">Π</div>
     
-    <div class="particle" style="left:12%; animation: float 22s infinite linear; font-size: 40px; opacity: 0.2;">○</div>
-    <div class="particle" style="left:40%; animation: float 25s infinite linear; font-size: 35px; opacity: 0.2; animation-delay: 4s;">△</div>
-    <div class="particle" style="left:60%; animation: float 20s infinite linear; font-size: 30px; opacity: 0.2; animation-delay: 7s;">□</div>
-    <div class="particle" style="left:80%; animation: float 24s infinite linear; font-size: 45px; opacity: 0.2; animation-delay: 5s;">▭</div>
+    <div class="particle" style="left:12%; animation-duration: 22s, 12s; font-size: 40px; opacity: 0.2;">○</div>
+    <div class="particle" style="left:40%; animation-duration: 25s, 15s; font-size: 35px; opacity: 0.2; animation-delay: 4s, 0s;">△</div>
+    <div class="particle" style="left:60%; animation-duration: 20s, 11s; font-size: 30px; opacity: 0.2; animation-delay: 7s, 0s;">□</div>
+    <div class="particle" style="left:80%; animation-duration: 24s, 14s; font-size: 45px; opacity: 0.2; animation-delay: 5s, 0s;">▭</div>
 
-    <div class="particle" style="left:22%; animation: float 12s infinite linear;">∫</div>
-    <div class="particle" style="left:50%; animation: float 18s infinite linear; animation-delay: 5s;">∞</div>
-    <div class="particle" style="left:10%; animation: float 12s infinite linear;">ζ</div>
-    <div class="particle" style="left:65%; animation: float 14s infinite linear; animation-delay: 1s;">Σ</div>
-    <div class="particle" style="left:85%; animation: float 16s infinite linear; animation-delay: 4s;">π</div>
-    <div class="particle" style="left:15%; animation: float 20s infinite linear; animation-delay: 8s;">√</div>
+    <div class="particle" style="left:22%; animation-duration: 12s, 5s;">∫</div>
+    <div class="particle" style="left:50%; animation-duration: 18s, 10s; animation-delay: 5s, 0s;">∞</div>
+    <div class="particle" style="left:10%; animation-duration: 12s, 6s;">ζ</div>
+    <div class="particle" style="left:65%; animation-duration: 14s, 7s; animation-delay: 1s, 0s;">Σ</div>
+    <div class="particle" style="left:85%; animation-duration: 16s, 8s; animation-delay: 4s, 0s;">π</div>
+    <div class="particle" style="left:15%; animation-duration: 20s, 12s; animation-delay: 8s, 0s;">√</div>
     """, unsafe_allow_html=True)
 
 # --- 3. محرك Groq الذكي ---
@@ -132,4 +135,4 @@ with col2:
                 ans_container.markdown(f'<div style="color:#00d2ff;">{full_ans}▌</div>', unsafe_allow_html=True)
             ans_container.markdown(full_ans)
 
-st.markdown("<br><br><p style='text-align:center; color:rgba(255,255,255,0.1);'>V12.2 | Developed by Youness Modine | UIT</p>", unsafe_allow_html=True)
+st.markdown("<br><br><p style='text-align:center; color:rgba(255,255,255,0.1);'>V12.3 | Developed by Youness Modine | UIT</p>", unsafe_allow_html=True)
