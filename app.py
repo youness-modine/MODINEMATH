@@ -1,8 +1,12 @@
 import streamlit as st
 import requests
 import json
-import fitz
+import fitz  # PyMuPDF
 from fpdf import FPDF
+from PIL import Image
+import pandas as pd
+import docx
+import io
 
 # --- 1. إعدادات الصفحة ---
 st.set_page_config(page_title="MODINEMATH COSMOS", page_icon="ζ", layout="wide")
@@ -13,106 +17,90 @@ st.markdown("""
     .stApp { background-color: #050505 !important; }
     .zeta-header {
         text-align: center;
-        font-size: 75px; font-weight: 900;
+        font-size: 70px; font-weight: 900;
         background: linear-gradient(90deg, #00bcff, #ffffff, #00bcff);
         -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         filter: drop-shadow(0 0 15px rgba(0, 188, 255, 0.6));
-        margin-top: 30px;
-    }
-    @keyframes colorChange {
-        0% { color: #00bcff; text-shadow: 0 0 10px #00bcff; }
-        50% { color: #ffffff; text-shadow: 0 0 20px #ffffff; }
-        100% { color: #00bcff; text-shadow: 0 0 10px #00bcff; }
-    }
-    @keyframes float {
-        0% { transform: translateY(110vh) rotate(0deg) scale(1); opacity: 0; }
-        20% { opacity: 0.5; }
-        80% { opacity: 0.5; }
-        100% { transform: translateY(-20vh) rotate(720deg) scale(1.2); opacity: 0; }
     }
     .particle {
         position: fixed; top: 0; font-family: 'serif'; font-weight: bold;
         font-size: 32px; user-select: none; pointer-events: none; z-index: 0;
         animation: float 15s infinite linear, colorChange 6s infinite ease-in-out;
     }
-    div.stButton > button {
-        background: transparent !important; color: #00bcff !important;
-        border: 2px solid #00bcff !important; border-radius: 50px !important;
-        padding: 10px 40px !important; font-weight: bold !important;
-        transition: all 0.3s ease !important;
-        box-shadow: 0 0 10px rgba(0, 188, 255, 0.3) !important;
-    }
-    div.stButton > button:hover {
-        background: #00bcff !important; color: #000 !important;
-        box-shadow: 0 0 40px #00bcff !important; transform: scale(1.05) !important;
-    }
+    @keyframes colorChange { 0%, 100% { color: #00bcff; } 50% { color: #ffffff; } }
+    @keyframes float { 0% { transform: translateY(110vh) rotate(0deg); opacity: 0; } 100% { transform: translateY(-10vh) rotate(720deg); opacity: 0; } }
     
-    /* تعديل عرض حاوية الجواب ليكون عريضاً جداً */
     .response-container {
-        color: #ffffff; 
-        background: rgba(255,255,255,0.05); 
-        padding: 30px; 
-        border-radius: 15px;
-        width: 100%;
-        margin-top: 20px;
-        font-size: 18px;
-        line-height: 1.6;
+        color: #ffffff; background: rgba(255,255,255,0.05); 
+        padding: 30px; border-radius: 15px; width: 100%; margin-top: 20px;
     }
     </style>
-
-    <div class="particle" style="left:5%; animation-duration: 14s, 5s;">β</div>
-    <div class="particle" style="left:18%; animation-duration: 16s, 7s; animation-delay: 3s, 0s;">Γ</div>
-    <div class="particle" style="left:35%; animation-duration: 13s, 4s; animation-delay: 1s, 0s;">∇</div>
-    <div class="particle" style="left:55%; animation-duration: 19s, 8s; animation-delay: 6s, 0s;">[M]</div>
-    <div class="particle" style="left:75%; animation-duration: 15s, 6s; animation-delay: 2s, 0s;">Π</div>
-    <div class="particle" style="left:12%; animation-duration: 22s, 10s; font-size: 40px; opacity: 0.2;">○</div>
-    <div class="particle" style="left:40%; animation-duration: 25s, 12s; font-size: 35px; opacity: 0.2; animation-delay: 4s, 0s;">△</div>
-    <div class="particle" style="left:60%; animation-duration: 20s, 9s; font-size: 30px; opacity: 0.2; animation-delay: 7s, 0s;">□</div>
-    <div class="particle" style="left:80%; animation-duration: 24s, 11s; font-size: 45px; opacity: 0.2; animation-delay: 5s, 0s;">▭</div>
-    <div class="particle" style="left:22%; animation-duration: 12s, 4s;">∫</div>
-    <div class="particle" style="left:50%; animation-duration: 18s, 8s; animation-delay: 5s, 0s;">∞</div>
-    <div class="particle" style="left:10%; animation-duration: 12s, 5s;">ζ</div>
-    <div class="particle" style="left:65%; animation-duration: 14s, 6s; animation-delay: 1s, 0s;">Σ</div>
-    <div class="particle" style="left:85%; animation-duration: 16s, 7s; animation-delay: 4s, 0s;">π</div>
-    <div class="particle" style="left:15%; animation-duration: 20s, 10s; animation-delay: 8s, 0s;">√</div>
+    <div class="particle" style="left:10%; animation: float 12s infinite linear;">∫</div>
+    <div class="particle" style="left:30%; animation: float 15s infinite linear;">ζ</div>
+    <div class="particle" style="left:50%; animation: float 18s infinite linear;">∞</div>
+    <div class="particle" style="left:70%; animation: float 14s infinite linear;">Σ</div>
+    <div class="particle" style="left:90%; animation: float 16s infinite linear;">π</div>
     """, unsafe_allow_html=True)
 
-# --- 3. محرك Groq (Llama 3.3) ---
+# --- 3. محرك Groq المطور ---
 GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
 
-def generate_cosmos_ans(prompt):
+def generate_cosmos_ans(prompt, context=""):
     url = "https://api.groq.com/openai/v1/chat/completions"
     headers = {"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"}
+    full_prompt = f"Context from files: {context}\n\nUser Question: {prompt}"
     payload = {
         "model": "llama-3.3-70b-versatile",
-        "messages": [{"role": "system", "content": "You are MODINEMATH, a math expert. Use LaTeX."},
-                     {"role": "user", "content": prompt}]
+        "messages": [{"role": "system", "content": "You are MODINEMATH, a cosmic math AI. Analyze files and solve with LaTeX."},
+                     {"role": "user", "content": full_prompt}]
     }
     try:
-        response = requests.post(url, headers=headers, json=payload, timeout=30)
-        if response.status_code == 200:
-            return response.json()['choices'][0]['message']['content']
-        else:
-            return f"Error: {response.status_code} - {response.text}"
-    except Exception as e:
-        return f"Connection Error: {str(e)}"
+        response = requests.post(url, headers=headers, json=payload, timeout=60)
+        return response.json()['choices'][0]['message']['content'] if response.status_code == 200 else f"Error: {response.text}"
+    except Exception as e: return f"Error: {str(e)}"
 
-# --- 4. واجهة المستخدم ---
+# --- 4. معالجة أنواع الملفات المختلفة ---
+def extract_text(file):
+    if file.type == "application/pdf":
+        doc = fitz.open(stream=file.read(), filetype="pdf")
+        return "\n".join([page.get_text() for page in doc])
+    elif file.type in ["image/png", "image/jpeg"]:
+        return "[Image detected - AI will analyze visual patterns if possible]"
+    elif file.type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+        doc = docx.Document(file)
+        return "\n".join([p.text for p in doc.paragraphs])
+    elif file.type in ["application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "text/csv"]:
+        df = pd.read_excel(file) if "sheet" in file.type else pd.read_csv(file)
+        return df.to_string()
+    return ""
+
+# --- 5. واجهة المستخدم ---
 st.markdown('<div class="zeta-header">ζ MODINEMATH</div>', unsafe_allow_html=True)
-st.markdown("<p style='text-align:center; color:#ffffff; opacity:0.7;'>PROBING THE LIMITS OF MATHEMATICAL INTELLIGENCE</p>", unsafe_allow_html=True)
 
-# خانة السؤال العريضة
-user_input = st.text_area("", placeholder="Ask the Cosmic Encyclopedia...", height=150, label_visibility="collapsed")
+# منطقة الرفع العالمية (يدعم 5GB بفضل config.toml)
+uploaded_files = st.file_uploader("Upload Math Documents (PDF, JPG, PNG, DOCX, Excel)", 
+                                  type=["pdf", "png", "jpg", "docx", "xlsx", "csv"], 
+                                  accept_multiple_files=True)
 
-# البوطونة في الوسط
-col_btn1, col_btn2, col_btn3 = st.columns([1, 0.4, 1])
-with col_btn2:
-    submit = st.button("IGNITE SOLVER ✨")
+user_input = st.text_area("", placeholder="Ask about your files or write a math question...", height=100)
 
-# عرض الجواب بعرض الشاشة كامل
-if submit and user_input:
-    with st.spinner("Analyzing the Cosmos..."):
-        ans = generate_cosmos_ans(user_input)
-        st.markdown(f'<div class="response-container">{ans}</div>', unsafe_allow_html=True)
+if st.button("IGNITE SOLVER ✨"):
+    if user_input or uploaded_files:
+        with st.spinner("Processing the Universe..."):
+            file_context = ""
+            if uploaded_files:
+                for f in uploaded_files:
+                    file_context += f"\n--- File: {f.name} ---\n" + extract_text(f)
+            
+            ans = generate_cosmos_ans(user_input, file_context)
+            st.markdown(f'<div class="response-container">{ans}</div>', unsafe_allow_html=True)
+            
+            # ميزة تحميل الحل PDF
+            pdf = FPDF()
+            pdf.add_page()
+            pdf.set_font("Arial", size=12)
+            pdf.multi_cell(0, 10, txt=ans.encode('latin-1', 'replace').decode('latin-1'))
+            pdf_output = pdf.output(dest='S').encode('latin-1')
+            st.download_button(label="📥 Download Solution as PDF", data=pdf_output, file_name="MODINEMATH_Solution.pdf", mime="application/pdf")
 
-st.markdown("<br><br><p style='text-align:center; color:rgba(255,255,255,0.2);'>V12.7 | Wide Display Edition | Youness Modine</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:center; color:rgba(255,255,255,0.2);'>V13.0 | Universal Solver | Youness Modine</p>", unsafe_allow_html=True)
