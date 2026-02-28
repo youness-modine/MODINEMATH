@@ -3,112 +3,101 @@ import requests
 import json
 import fitz
 from fpdf import FPDF
-import base64
 
-# --- 1. إعدادات PDF الاحترافية ---
-class PDF(FPDF):
-    def header(self):
-        self.set_font('Arial', 'B', 15)
-        self.set_text_color(0, 210, 255)
-        self.cell(0, 10, 'MODINEMATH AI - OFFICIAL PROOF', 0, 1, 'C')
-        self.line(10, 25, 200, 25)
-        self.ln(10)
+# --- 1. إعدادات الصفحة والهوية ---
+st.set_page_config(page_title="MODINEMATH COSMOS", page_icon="ζ", layout="wide")
 
-# --- 2. تصميم واجهة Gemini (CSS Custom Styling) ---
-st.set_page_config(page_title="MODINEMATH AI", page_icon="ζ", layout="wide")
-
+# --- 2. سحر الـ CSS و الأنيميشن (The Dark Magic) ---
 st.markdown("""
     <style>
-    /* خلفية Gemini العميقة */
+    /* خلفية كونية متحركة */
     .stApp {
-        background-color: #131314;
-        color: #e3e3e3;
-        font-family: 'Google Sans', sans-serif;
+        background: #050505;
+        overflow: hidden;
     }
-    
-    /* العنوان والشعار (Zeta + MODINEMATH) */
-    .gemini-header {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 15px;
-        padding: 20px;
-        margin-top: 50px;
+
+    /* تأثير النجوم الرياضية (Mathematical Stars) */
+    @keyframes move-symbols {
+        from { transform: translateY(0px) rotate(0deg); opacity: 0.2; }
+        to { transform: translateY(-1000px) rotate(360deg); opacity: 0; }
     }
-    
-    .zeta-symbol {
-        font-size: 50px;
-        background: linear-gradient(to right, #4285f4, #9b72cb, #d96570);
+
+    .math-symbol {
+        position: fixed;
+        color: rgba(0, 210, 255, 0.3);
+        font-family: 'Times New Roman';
+        z-index: -1;
+        pointer-events: none;
+        animation: move-symbols 15s linear infinite;
+    }
+
+    /* العنوان المتوهج (Neon Zeta) */
+    .zeta-header {
+        text-align: center;
+        font-size: 80px;
+        font-weight: bold;
+        background: linear-gradient(90deg, #00d2ff, #92fe9d, #00d2ff);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        font-weight: bold;
+        filter: drop-shadow(0 0 15px rgba(0, 210, 255, 0.5));
+        margin-bottom: 0px;
     }
 
-    .brand-name {
-        font-size: 40px;
-        font-weight: 500;
-        color: #e3e3e3;
-    }
-
-    /* صندوق الإدخال (Chat Input Style) */
-    .stTextArea textarea {
-        background-color: #1e1f20 !important;
-        border: 1px solid #3c4043 !important;
-        border-radius: 24px !important;
-        color: #e3e3e3 !important;
-        padding: 20px !important;
-        font-size: 16px !important;
-    }
-
-    /* أزرار Gemini */
+    /* أزرار تفاعلية بالضوء (Animated Buttons) */
     div.stButton > button {
-        background-color: #1e1f20;
-        color: #c4c7c5;
-        border: 1px solid #3c4043;
-        border-radius: 20px;
-        transition: 0.3s;
-    }
-    
-    div.stButton > button:hover {
-        background-color: #3c4043;
-        border-color: #4285f4;
-        color: white;
+        background: rgba(255, 255, 255, 0.05) !important;
+        color: #00d2ff !important;
+        border: 1px solid #00d2ff !important;
+        border-radius: 30px !important;
+        padding: 15px 30px !important;
+        font-size: 18px !important;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+        box-shadow: 0 0 5px rgba(0, 210, 255, 0.2) !important;
     }
 
-    /* تنسيق الحلول (Response Box) */
-    .response-container {
-        background-color: transparent;
-        border-left: 3px solid #4285f4;
-        padding-left: 20px;
-        margin-top: 30px;
+    div.stButton > button:hover {
+        background: #00d2ff !important;
+        color: #000 !important;
+        box-shadow: 0 0 30px #00d2ff, 0 0 60px rgba(0, 210, 255, 0.4) !important;
+        transform: scale(1.05) translateY(-5px) !important;
+    }
+
+    /* صندوق الإدخال الزجاجي (Glassmorphism) */
+    .stTextArea textarea {
+        background: rgba(255, 255, 255, 0.03) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 20px !important;
+        color: #fff !important;
+        backdrop-filter: blur(10px) !important;
+    }
+
+    .stTextArea textarea:focus {
+        border-color: #00d2ff !important;
+        box-shadow: 0 0 15px rgba(0, 210, 255, 0.3) !important;
     }
     </style>
+    
+    <div class="math-symbol" style="left: 10%; bottom: -100px; font-size: 30px;">∫</div>
+    <div class="math-symbol" style="left: 30%; bottom: -200px; font-size: 20px; animation-delay: 2s;">∑</div>
+    <div class="math-symbol" style="left: 50%; bottom: -150px; font-size: 40px; animation-delay: 5s;">π</div>
+    <div class="math-symbol" style="left: 70%; bottom: -300px; font-size: 25px; animation-delay: 7s;">√</div>
+    <div class="math-symbol" style="left: 90%; bottom: -100px; font-size: 35px; animation-delay: 1s;">∞</div>
     """, unsafe_allow_html=True)
 
-# --- 3. محرك Groq (The Global Mathematician) ---
+# --- 3. المحرك الذكي (The Brain) ---
 GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
 
-def generate_gemini_response(prompt):
+def generate_cosmos_response(prompt):
     url = "https://api.groq.com/openai/v1/chat/completions"
     headers = {"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"}
-    
-    # البرومبت دابا ذكي: كيعرف اللغة من السؤال نيت (الصينية، اليابانية، إلخ)
-    system_prompt = (
-        "You are MODINEMATH, an elite mathematician and encyclopedia. "
-        "Analyze the user's prompt. If they specify a language like [Chinese] or [Japanese] at the end, "
-        "provide the full rigorous proof and explanation in that specific language. "
-        "Always use LaTeX for mathematical formulas."
-    )
-    
     payload = {
         "model": "llama3-70b-8192",
         "messages": [
-            {"role": "system", "content": system_prompt},
+            {"role": "system", "content": "You are MODINEMATH, an elite cosmic mathematician. Solve rigorously. Use LaTeX. Support all languages specified like [Chinese]."},
             {"role": "user", "content": prompt}
         ],
         "stream": True
     }
-    
     response = requests.post(url, headers=headers, json=payload, stream=True)
     for line in response.iter_lines():
         if line:
@@ -119,47 +108,24 @@ def generate_gemini_response(prompt):
                 yield chunk['choices'][0]['delta'].get('content', '')
             except: continue
 
-# --- 4. واجهة المستخدم النهائية ---
-st.markdown(f'''
-    <div class="gemini-header">
-        <span class="zeta-symbol">ζ</span>
-        <span class="brand-name">MODINEMATH</span>
-    </div>
-''', unsafe_allow_html=True)
+# --- 4. واجهة المستخدم ---
+st.markdown('<div class="zeta-header">ζ MODINEMATH</div>', unsafe_allow_html=True)
+st.markdown("<p style='text-align:center; color:#8892b0; font-family: monospace;'>PROBING THE LIMITS OF MATHEMATICAL INTELLIGENCE</p>", unsafe_allow_html=True)
 
-st.markdown("<p style='text-align:center; color:#c4c7c5;'>Enter your LaTeX or math question. Example: Define Hilbert Space [Chinese]</p>", unsafe_allow_html=True)
-
-# صندوق البحث (مثل Gemini)
-user_input = st.text_area("", placeholder="Ask MODINEMATH anything...", height=100)
+# مساحة الدردشة
+user_input = st.text_area("", placeholder="Ask the Cosmic Encyclopedia...", height=120)
 
 col1, col2, col3 = st.columns([1, 1, 1])
 with col2:
-    submit_btn = st.button("Generate Solution ✨")
+    if st.button("IGNITE SOLVER ✨"):
+        if user_input:
+            full_response = ""
+            st.markdown("### 🎓 Cosmic Derivation:")
+            ans_area = st.empty()
+            for chunk in generate_cosmos_response(user_input):
+                full_response += chunk
+                ans_area.markdown(f'<div style="color:#00d2ff; text-shadow: 0 0 10px rgba(0,210,255,0.2);">{full_response}▌</div>', unsafe_allow_html=True)
+            ans_area.markdown(f'<div style="color:#e0e0e0;">{full_response}</div>', unsafe_allow_html=True)
 
-if submit_btn and user_input:
-    full_response = ""
-    st.markdown('<div class="response-container">', unsafe_allow_html=True)
-    ans_area = st.empty()
-    
-    # الرد اللحظي (Streaming)
-    for chunk in generate_gemini_response(user_input):
-        full_response += chunk
-        ans_area.markdown(full_response + "▌")
-    ans_area.markdown(full_response)
-    st.markdown('</div>', unsafe_allow_html=True)
-
-    # تصدير الـ PDF
-    pdf = PDF()
-    pdf.add_page()
-    pdf.set_font("Arial", size=12)
-    pdf.multi_cell(0, 10, full_response.encode('latin-1', 'replace').decode('latin-1'))
-    st.download_button("📥 Download Official Proof (PDF)", pdf.output(dest='S').encode('latin-1'), "MODINEMATH_Proof.pdf")
-
-# إضافة ميزة رفع الملفات (Gemini Style)
-st.markdown("---")
-with st.expander("📎 Upload Documents (PDF/Images)"):
-    uploaded_file = st.file_uploader("Choose a file", type=["pdf", "png", "jpg"])
-    if uploaded_file:
-        st.success("File uploaded successfully. Ask your question above about this file.")
-
-st.markdown("<br><br><p style='text-align:center; color:#444746;'>MODINEMATH AI - Version 11.0 (Gemini Interface)</p>", unsafe_allow_html=True)
+# تذييل الصفحة
+st.markdown("<br><br><p style='text-align:center; color:rgba(255,255,255,0.1);'>V12.0 | Developed by Youness Modine | UIT</p>", unsafe_allow_html=True)
