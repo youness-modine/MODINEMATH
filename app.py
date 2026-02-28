@@ -50,7 +50,7 @@ def generate_cosmos_ans(prompt, context=""):
     headers = {"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"}
     full_prompt = f"Context from files: {context}\n\nUser Question: {prompt}"
     payload = {
-        "model": "llama-3.3-70b-versatile",
+        "model": "deepseek-r1-distill-llama-70b",
         "messages": [{"role": "system", "content": "You are MODINEMATH, a cosmic math AI. Analyze files and solve with LaTeX."},
                      {"role": "user", "content": full_prompt}]
     }
@@ -104,3 +104,4 @@ if st.button("IGNITE SOLVER ✨"):
             st.download_button(label="📥 Download Solution as PDF", data=pdf_output, file_name="MODINEMATH_Solution.pdf", mime="application/pdf")
 
 st.markdown("<p style='text-align:center; color:rgba(255,255,255,0.2);'>V13.0 | Universal Solver | Youness Modine</p>", unsafe_allow_html=True)
+
