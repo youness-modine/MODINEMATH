@@ -1,114 +1,55 @@
 import streamlit as st
 import requests
 import json
-import fitz
-from fpdf import FPDF
-import base64
+from streamlit_lottie import st_lottie
+import time
 
-# --- 1. إعدادات PDF الاحترافية ---
-class PDF(FPDF):
-    def header(self):
-        self.set_font('Arial', 'B', 15)
-        self.set_text_color(0, 210, 255)
-        self.cell(0, 10, 'MODINEMATH AI - OFFICIAL PROOF', 0, 1, 'C')
-        self.line(10, 25, 200, 25)
-        self.ln(10)
+# --- 1. إعدادات الصفحة ---
+st.set_page_config(page_title="MODINE COPILOT", page_icon="🚀", layout="wide")
 
-# --- 2. تصميم واجهة Gemini (CSS Custom Styling) ---
-st.set_page_config(page_title="MODINEMATH AI", page_icon="ζ", layout="wide")
+# دالة تحميل الأنيميشن مع الحماية
+def load_lottieurl(url: str):
+    try:
+        r = requests.get(url, timeout=5)
+        return r.json() if r.status_code == 200 else None
+    except: return None
 
+lottie_ai = load_lottieurl("https://lottie.host/8e202975-5282-4f72-9658-54c30c3331b2/pP6eFw6z7B.json")
+
+# --- 2. الذاكرة (Chat History Initializer) ---
+# هاد الجزء هو اللي كيخلي السيت يعقل عليك
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+# --- 3. تصميم الواجهة (DeepSeek Dark Mode) ---
 st.markdown("""
     <style>
-    /* خلفية Gemini العميقة */
-    .stApp {
-        background-color: #131314;
-        color: #e3e3e3;
-        font-family: 'Google Sans', sans-serif;
+    .stApp { background: #0b0b0d !important; }
+    .stApp::before {
+        content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: transparent url('https://www.transparenttextures.com/patterns/stardust.png') repeat;
+        opacity: 0.2; z-index: -1; animation: move-twinkle 200s linear infinite;
     }
+    @keyframes move-twinkle { from { background-position: 0 0; } to { background-position: -10000px 5000px; } }
     
-    /* العنوان والشعار (Zeta + MODINEMATH) */
-    .gemini-header {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 15px;
-        padding: 20px;
-        margin-top: 50px;
-    }
-    
-    .zeta-symbol {
-        font-size: 50px;
-        background: linear-gradient(to right, #4285f4, #9b72cb, #d96570);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        font-weight: bold;
-    }
-
-    .brand-name {
-        font-size: 40px;
-        font-weight: 500;
-        color: #e3e3e3;
-    }
-
-    /* صندوق الإدخال (Chat Input Style) */
-    .stTextArea textarea {
-        background-color: #1e1f20 !important;
-        border: 1px solid #3c4043 !important;
-        border-radius: 24px !important;
-        color: #e3e3e3 !important;
-        padding: 20px !important;
-        font-size: 16px !important;
-    }
-
-    /* أزرار Gemini */
-    div.stButton > button {
-        background-color: #1e1f20;
-        color: #c4c7c5;
-        border: 1px solid #3c4043;
-        border-radius: 20px;
-        transition: 0.3s;
-    }
-    
-    div.stButton > button:hover {
-        background-color: #3c4043;
-        border-color: #4285f4;
-        color: white;
-    }
-
-    /* تنسيق الحلول (Response Box) */
-    .response-container {
-        background-color: transparent;
-        border-left: 3px solid #4285f4;
-        padding-left: 20px;
-        margin-top: 30px;
-    }
+    /* تنسيق فقاعات الدردشة */
+    .chat-bubble { padding: 15px; border-radius: 15px; margin-bottom: 10px; max-width: 85%; }
+    .user-bubble { background: #1e1f20; color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
+    .ai-bubble { background: rgba(66, 133, 244, 0.1); color: #e3e3e3; border-left: 3px solid #4285f4; border-bottom-left-radius: 2px; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 3. محرك Groq (The Global Mathematician) ---
+# --- 4. محرك Groq مع دعم الذاكرة ---
 GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
 
-def generate_gemini_response(prompt):
+def get_ai_response(messages):
     url = "https://api.groq.com/openai/v1/chat/completions"
     headers = {"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"}
-    
-    # البرومبت دابا ذكي: كيعرف اللغة من السؤال نيت (الصينية، اليابانية، إلخ)
-    system_prompt = (
-        "You are MODINEMATH, an elite mathematician and encyclopedia. "
-        "Analyze the user's prompt. If they specify a language like [Chinese] or [Japanese] at the end, "
-        "provide the full rigorous proof and explanation in that specific language. "
-        "Always use LaTeX for mathematical formulas."
-    )
-    
     payload = {
         "model": "llama3-70b-8192",
-        "messages": [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": prompt}
-        ],
+        "messages": [{"role": "system", "content": "You are MODINE COPILOT, a top-tier math AI. Use LaTeX and maintain context."}] + messages,
         "stream": True
     }
-    
     response = requests.post(url, headers=headers, json=payload, stream=True)
     for line in response.iter_lines():
         if line:
@@ -119,47 +60,37 @@ def generate_gemini_response(prompt):
                 yield chunk['choices'][0]['delta'].get('content', '')
             except: continue
 
-# --- 4. واجهة المستخدم النهائية ---
-st.markdown(f'''
-    <div class="gemini-header">
-        <span class="zeta-symbol">ζ</span>
-        <span class="brand-name">MODINEMATH</span>
-    </div>
-''', unsafe_allow_html=True)
+# --- 5. واجهة المستخدم ---
+col_l, col_r = st.columns([1, 5])
+with col_l:
+    if lottie_ai: st_lottie(lottie_ai, height=80, key="ai_icon")
+    else: st.write("🚀")
+with col_r:
+    st.markdown("<h1 style='color:white; margin:0;'>MODINE COPILOT</h1>", unsafe_allow_html=True)
 
-st.markdown("<p style='text-align:center; color:#c4c7c5;'>Enter your LaTeX or math question. Example: Define Hilbert Space [Chinese]</p>", unsafe_allow_html=True)
+# عرض الحوار القديم (Display History)
+# هادي هي اللي كاتخليك تشوف شنو سولتي قبل
+for message in st.session_state.messages:
+    div_class = "user-bubble" if message["role"] == "user" else "ai-bubble"
+    st.markdown(f'<div class="chat-bubble {div_class}">{message["content"]}</div>', unsafe_allow_html=True)
 
-# صندوق البحث (مثل Gemini)
-user_input = st.text_area("", placeholder="Ask MODINEMATH anything...", height=100)
+# منطقة الإدخال (Chat Input مثل DeepSeek)
+if prompt := st.chat_input("Ask MODINE COPILOT..."):
+    # تخزين سؤال المستخدم
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user", avatar="👤"):
+        st.markdown(prompt)
 
-col1, col2, col3 = st.columns([1, 1, 1])
-with col2:
-    submit_btn = st.button("Generate Solution ✨")
-
-if submit_btn and user_input:
-    full_response = ""
-    st.markdown('<div class="response-container">', unsafe_allow_html=True)
-    ans_area = st.empty()
+    # توليد رد الذكاء الاصطناعي
+    with st.chat_message("assistant", avatar="🛡️"):
+        res_placeholder = st.empty()
+        full_res = ""
+        for chunk in get_ai_response(st.session_state.messages):
+            full_res += chunk
+            res_placeholder.markdown(full_res + "▌")
+        res_placeholder.markdown(full_res)
     
-    # الرد اللحظي (Streaming)
-    for chunk in generate_gemini_response(user_input):
-        full_response += chunk
-        ans_area.markdown(full_response + "▌")
-    ans_area.markdown(full_response)
-    st.markdown('</div>', unsafe_allow_html=True)
+    # تخزين رد الذكاء في الذاكرة
+    st.session_state.messages.append({"role": "assistant", "content": full_res})
 
-    # تصدير الـ PDF
-    pdf = PDF()
-    pdf.add_page()
-    pdf.set_font("Arial", size=12)
-    pdf.multi_cell(0, 10, full_response.encode('latin-1', 'replace').decode('latin-1'))
-    st.download_button("📥 Download Official Proof (PDF)", pdf.output(dest='S').encode('latin-1'), "MODINEMATH_Proof.pdf")
-
-# إضافة ميزة رفع الملفات (Gemini Style)
-st.markdown("---")
-with st.expander("📎 Upload Documents (PDF/Images)"):
-    uploaded_file = st.file_uploader("Choose a file", type=["pdf", "png", "jpg"])
-    if uploaded_file:
-        st.success("File uploaded successfully. Ask your question above about this file.")
-
-st.markdown("<br><br><p style='text-align:center; color:#444746;'>MODINEMATH AI - Version 11.0 (Gemini Interface)</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:center; color:#444746; margin-top:50px;'>Neural Memory V14.0 | Powered by Groq</p>", unsafe_allow_html=True)
