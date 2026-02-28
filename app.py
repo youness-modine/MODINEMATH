@@ -2,6 +2,11 @@ import streamlit as st
 import requests
 import json
 from streamlit_lottie import st_lottie
+import fitz
+from fpdf import FPDF
+import base64
+from PIL import Image
+import io
 import time
 
 # --- 1. إعدادات الصفحة والهوية ---
@@ -108,3 +113,4 @@ with c2:
             res_box.markdown(f"<div style='background:rgba(255,255,255,0.03); padding:20px; border-radius:15px; border-left:4px solid #9b72cb;'>{full_res}</div>", unsafe_allow_html=True)
 
 st.markdown("<p style='text-align:center; color:#444746; margin-top:100px;'>Based on Groq LPU Technology | V13.0</p>", unsafe_allow_html=True)
+
