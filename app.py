@@ -4,98 +4,86 @@ import json
 import fitz
 from fpdf import FPDF
 
-# --- 1. إعدادات الصفحة والهوية ---
+# --- 1. إعدادات الصفحة ---
 st.set_page_config(page_title="MODINEMATH COSMOS", page_icon="ζ", layout="wide")
 
-# --- 2. سحر الـ CSS و الأنيميشن (The Dark Magic) ---
+# --- 2. سحر الأنيميشن المتقدم (HTML + CSS Injection) ---
 st.markdown("""
     <style>
-    /* خلفية كونية متحركة */
+    /* خلفية Gemini/Grok العميقة */
     .stApp {
-        background: #050505;
-        overflow: hidden;
+        background-color: #050505 !important;
     }
 
-    /* تأثير النجوم الرياضية (Mathematical Stars) */
-    @keyframes move-symbols {
-        from { transform: translateY(0px) rotate(0deg); opacity: 0.2; }
-        to { transform: translateY(-1000px) rotate(360deg); opacity: 0; }
-    }
-
-    .math-symbol {
-        position: fixed;
-        color: rgba(0, 210, 255, 0.3);
-        font-family: 'Times New Roman';
-        z-index: -1;
-        pointer-events: none;
-        animation: move-symbols 15s linear infinite;
-    }
-
-    /* العنوان المتوهج (Neon Zeta) */
+    /* تأثير التوهج للعنوان */
     .zeta-header {
         text-align: center;
-        font-size: 80px;
-        font-weight: bold;
-        background: linear-gradient(90deg, #00d2ff, #92fe9d, #00d2ff);
+        font-size: 75px;
+        font-weight: 900;
+        background: linear-gradient(90deg, #00d2ff, #9b72cb, #d96570);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        filter: drop-shadow(0 0 15px rgba(0, 210, 255, 0.5));
-        margin-bottom: 0px;
+        filter: drop-shadow(0 0 20px rgba(0, 210, 255, 0.4));
+        margin-top: 30px;
     }
 
-    /* أزرار تفاعلية بالضوء (Animated Buttons) */
+    /* أنيميشن الرموز الرياضية الطائرة */
+    @keyframes float {
+        0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+        10% { opacity: 0.4; }
+        90% { opacity: 0.4; }
+        100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
+    }
+
+    .particle {
+        position: fixed;
+        top: 0;
+        color: #00d2ff;
+        font-family: 'serif';
+        font-weight: bold;
+        user-select: none;
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    /* مظهر الأزرار التفاعلي */
     div.stButton > button {
-        background: rgba(255, 255, 255, 0.05) !important;
+        background: transparent !important;
         color: #00d2ff !important;
-        border: 1px solid #00d2ff !important;
-        border-radius: 30px !important;
-        padding: 15px 30px !important;
-        font-size: 18px !important;
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
-        box-shadow: 0 0 5px rgba(0, 210, 255, 0.2) !important;
+        border: 2px solid #00d2ff !important;
+        border-radius: 50px !important;
+        padding: 10px 40px !important;
+        font-weight: bold !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 0 10px rgba(0, 210, 255, 0.2) !important;
     }
 
     div.stButton > button:hover {
         background: #00d2ff !important;
         color: #000 !important;
-        box-shadow: 0 0 30px #00d2ff, 0 0 60px rgba(0, 210, 255, 0.4) !important;
-        transform: scale(1.05) translateY(-5px) !important;
-    }
-
-    /* صندوق الإدخال الزجاجي (Glassmorphism) */
-    .stTextArea textarea {
-        background: rgba(255, 255, 255, 0.03) !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        border-radius: 20px !important;
-        color: #fff !important;
-        backdrop-filter: blur(10px) !important;
-    }
-
-    .stTextArea textarea:focus {
-        border-color: #00d2ff !important;
-        box-shadow: 0 0 15px rgba(0, 210, 255, 0.3) !important;
+        box-shadow: 0 0 40px #00d2ff !important;
+        transform: scale(1.05) !important;
     }
     </style>
-    
-    <div class="math-symbol" style="left: 10%; bottom: -100px; font-size: 30px;">∫</div>
-    <div class="math-symbol" style="left: 30%; bottom: -200px; font-size: 20px; animation-delay: 2s;">∑</div>
-    <div class="math-symbol" style="left: 50%; bottom: -150px; font-size: 40px; animation-delay: 5s;">π</div>
-    <div class="math-symbol" style="left: 70%; bottom: -300px; font-size: 25px; animation-delay: 7s;">√</div>
-    <div class="math-symbol" style="left: 90%; bottom: -100px; font-size: 35px; animation-delay: 1s;">∞</div>
+
+    <div class="particle" style="left:10%; animation: float 12s infinite linear;">∫</div>
+    <div class="particle" style="left:25%; animation: float 15s infinite linear; animation-delay: 2s;">ζ</div>
+    <div class="particle" style="left:45%; animation: float 18s infinite linear; animation-delay: 5s;">∞</div>
+    <div class="particle" style="left:65%; animation: float 14s infinite linear; animation-delay: 1s;">Σ</div>
+    <div class="particle" style="left:85%; animation: float 16s infinite linear; animation-delay: 4s;">π</div>
+    <div class="particle" style="left:15%; animation: float 20s infinite linear; animation-delay: 8s;">√</div>
     """, unsafe_allow_html=True)
 
-# --- 3. المحرك الذكي (The Brain) ---
+# --- 3. محرك Groq الذكي ---
 GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
 
-def generate_cosmos_response(prompt):
+def generate_cosmos_ans(prompt):
     url = "https://api.groq.com/openai/v1/chat/completions"
     headers = {"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"}
     payload = {
         "model": "llama3-70b-8192",
-        "messages": [
-            {"role": "system", "content": "You are MODINEMATH, an elite cosmic mathematician. Solve rigorously. Use LaTeX. Support all languages specified like [Chinese]."},
-            {"role": "user", "content": prompt}
-        ],
+        "messages": [{"role": "system", "content": "You are MODINEMATH, a cosmic math AI. Use LaTeX."},
+                     {"role": "user", "content": prompt}],
         "stream": True
     }
     response = requests.post(url, headers=headers, json=payload, stream=True)
@@ -110,22 +98,20 @@ def generate_cosmos_response(prompt):
 
 # --- 4. واجهة المستخدم ---
 st.markdown('<div class="zeta-header">ζ MODINEMATH</div>', unsafe_allow_html=True)
-st.markdown("<p style='text-align:center; color:#8892b0; font-family: monospace;'>PROBING THE LIMITS OF MATHEMATICAL INTELLIGENCE</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:center; color:#8892b0;'>PROBING THE LIMITS OF MATHEMATICAL INTELLIGENCE</p>", unsafe_allow_html=True)
 
-# مساحة الدردشة
-user_input = st.text_area("", placeholder="Ask the Cosmic Encyclopedia...", height=120)
+# Input area (مثل Gemini)
+user_input = st.text_area("", placeholder="Ask the Cosmic Encyclopedia...", height=120, label_visibility="collapsed")
 
-col1, col2, col3 = st.columns([1, 1, 1])
+col1, col2, col3 = st.columns([1, 0.6, 1])
 with col2:
     if st.button("IGNITE SOLVER ✨"):
         if user_input:
-            full_response = ""
-            st.markdown("### 🎓 Cosmic Derivation:")
-            ans_area = st.empty()
-            for chunk in generate_cosmos_response(user_input):
-                full_response += chunk
-                ans_area.markdown(f'<div style="color:#00d2ff; text-shadow: 0 0 10px rgba(0,210,255,0.2);">{full_response}▌</div>', unsafe_allow_html=True)
-            ans_area.markdown(f'<div style="color:#e0e0e0;">{full_response}</div>', unsafe_allow_html=True)
+            full_ans = ""
+            ans_container = st.empty()
+            for chunk in generate_cosmos_ans(user_input):
+                full_ans += chunk
+                ans_container.markdown(f'<div style="color:#00d2ff;">{full_ans}▌</div>', unsafe_allow_html=True)
+            ans_container.markdown(full_ans)
 
-# تذييل الصفحة
-st.markdown("<br><br><p style='text-align:center; color:rgba(255,255,255,0.1);'>V12.0 | Developed by Youness Modine | UIT</p>", unsafe_allow_html=True)
+st.markdown("<br><br><p style='text-align:center; color:rgba(255,255,255,0.1);'>V12.1 | Developed by Youness Modine | UIT</p>", unsafe_allow_html=True)
