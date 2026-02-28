@@ -92,7 +92,8 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # --- 3. المنطق البرمجي (The Engine) ---
-GROQ_API_KEY = "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"
+
+GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
 
 def query_groq(payload):
     url = "https://api.groq.com/openai/v1/chat/completions"
@@ -169,4 +170,5 @@ with col2:
                 st.download_button("📥 Download Official Proof (PDF)", data=pdf_bytes, file_name=f"MODINEMATH_{lang}.pdf")
 
 st.markdown("---")
+
 st.caption("© 2026 MODINEMATH AI - The Future of Mathematical Intelligence.")
