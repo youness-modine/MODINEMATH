@@ -4,50 +4,75 @@ import json
 from streamlit_lottie import st_lottie
 import time
 
-# --- 1. إعدادات الصفحة ---
+# --- 1. إعدادات الصفحة والهوية ---
 st.set_page_config(page_title="MODINE COPILOT", page_icon="🚀", layout="wide")
 
-# دالة تحميل الأنيميشن مع الحماية
+# دالة لتحميل الأنيميشن
 def load_lottieurl(url: str):
-    try:
-        r = requests.get(url, timeout=5)
-        return r.json() if r.status_code == 200 else None
-    except: return None
+    r = requests.get(url)
+    if r.status_code != 200: return None
+    return r.json()
 
-lottie_ai = load_lottieurl("https://lottie.host/8e202975-5282-4f72-9658-54c30c3331b2/pP6eFw6z7B.json")
+lottie_ai = load_lottieurl("https://assets10.lottiefiles.com/packages/lf20_g3p3re9h.json")
 
-# --- 2. الذاكرة (Chat History Initializer) ---
-# هاد الجزء هو اللي كيخلي السيت يعقل عليك
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-
-# --- 3. تصميم الواجهة (DeepSeek Dark Mode) ---
+# --- 2. سحر الواجهة (Grok & DeepSeek Style CSS) ---
 st.markdown("""
     <style>
-    .stApp { background: #0b0b0d !important; }
+    /* خلفية كونية غامقة */
+    .stApp {
+        background: radial-gradient(circle at center, #0a0a0b 0%, #000000 100%) !important;
+    }
+
+    /* أنيميشن النجوم في الخلفية */
+    @keyframes move-twinkle {
+        from { background-position: 0 0; }
+        to { background-position: -10000px 5000px; }
+    }
     .stApp::before {
         content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
         background: transparent url('https://www.transparenttextures.com/patterns/stardust.png') repeat;
-        opacity: 0.2; z-index: -1; animation: move-twinkle 200s linear infinite;
+        z-index: -1; opacity: 0.3; animation: move-twinkle 200s linear infinite;
     }
-    @keyframes move-twinkle { from { background-position: 0 0; } to { background-position: -10000px 5000px; } }
+
+    /* صندوق البحث العائم (Floating Input) */
+    .stTextArea textarea {
+        background: rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 20px !important;
+        color: white !important;
+        padding: 25px !important;
+        font-size: 18px !important;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5) !important;
+    }
+
+    /* أزرار Gemini المتوهجة */
+    div.stButton > button {
+        background: linear-gradient(90deg, #4285f4, #9b72cb) !important;
+        border: none !important;
+        border-radius: 12px !important;
+        color: white !important;
+        font-weight: bold !important;
+        padding: 10px 25px !important;
+        transition: 0.3s !important;
+    }
     
-    /* تنسيق فقاعات الدردشة */
-    .chat-bubble { padding: 15px; border-radius: 15px; margin-bottom: 10px; max-width: 85%; }
-    .user-bubble { background: #1e1f20; color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
-    .ai-bubble { background: rgba(66, 133, 244, 0.1); color: #e3e3e3; border-left: 3px solid #4285f4; border-bottom-left-radius: 2px; }
+    div.stButton > button:hover {
+        box-shadow: 0 0 20px rgba(155, 114, 203, 0.6) !important;
+        transform: scale(1.05) !important;
+    }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 4. محرك Groq مع دعم الذاكرة ---
+# --- 3. محرك Groq (الذكاء) ---
 GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
 
-def get_ai_response(messages):
+def get_ai_response(prompt):
     url = "https://api.groq.com/openai/v1/chat/completions"
     headers = {"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"}
     payload = {
         "model": "llama3-70b-8192",
-        "messages": [{"role": "system", "content": "You are MODINE COPILOT, a top-tier math AI. Use LaTeX and maintain context."}] + messages,
+        "messages": [{"role": "system", "content": "You are a professional Copilot. Use LaTeX for math."},
+                     {"role": "user", "content": prompt}],
         "stream": True
     }
     response = requests.post(url, headers=headers, json=payload, stream=True)
@@ -60,37 +85,26 @@ def get_ai_response(messages):
                 yield chunk['choices'][0]['delta'].get('content', '')
             except: continue
 
-# --- 5. واجهة المستخدم ---
-col_l, col_r = st.columns([1, 5])
+# --- 4. واجهة المستخدم النهائية ---
+st.write("<br><br>", unsafe_allow_html=True)
+col_l, col_r = st.columns([1, 4])
 with col_l:
-    if lottie_ai: st_lottie(lottie_ai, height=80, key="ai_icon")
-    else: st.write("🚀")
+    st_lottie(lottie_ai, height=100, key="ai_icon")
 with col_r:
-    st.markdown("<h1 style='color:white; margin:0;'>MODINE COPILOT</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='color:white; font-size:45px;'>MODINE COPILOT</h1>", unsafe_allow_html=True)
 
-# عرض الحوار القديم (Display History)
-# هادي هي اللي كاتخليك تشوف شنو سولتي قبل
-for message in st.session_state.messages:
-    div_class = "user-bubble" if message["role"] == "user" else "ai-bubble"
-    st.markdown(f'<div class="chat-bubble {div_class}">{message["content"]}</div>', unsafe_allow_html=True)
+# منطقة الإدخال المركزية
+user_query = st.text_area("", placeholder="What do you want to know?", height=120, label_visibility="collapsed")
 
-# منطقة الإدخال (Chat Input مثل DeepSeek)
-if prompt := st.chat_input("Ask MODINE COPILOT..."):
-    # تخزين سؤال المستخدم
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user", avatar="👤"):
-        st.markdown(prompt)
+c1, c2, c3 = st.columns([1, 0.5, 1])
+with c2:
+    if st.button("Generate ✨"):
+        if user_query:
+            full_res = ""
+            res_box = st.empty()
+            for chunk in get_ai_response(user_query):
+                full_res += chunk
+                res_box.markdown(f"<div style='background:rgba(255,255,255,0.03); padding:20px; border-radius:15px; border-left:4px solid #9b72cb;'>{full_res}▌</div>", unsafe_allow_html=True)
+            res_box.markdown(f"<div style='background:rgba(255,255,255,0.03); padding:20px; border-radius:15px; border-left:4px solid #9b72cb;'>{full_res}</div>", unsafe_allow_html=True)
 
-    # توليد رد الذكاء الاصطناعي
-    with st.chat_message("assistant", avatar="🛡️"):
-        res_placeholder = st.empty()
-        full_res = ""
-        for chunk in get_ai_response(st.session_state.messages):
-            full_res += chunk
-            res_placeholder.markdown(full_res + "▌")
-        res_placeholder.markdown(full_res)
-    
-    # تخزين رد الذكاء في الذاكرة
-    st.session_state.messages.append({"role": "assistant", "content": full_res})
-
-st.markdown("<p style='text-align:center; color:#444746; margin-top:50px;'>Neural Memory V14.0 | Powered by Groq</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:center; color:#444746; margin-top:100px;'>Based on Groq LPU Technology | V13.0</p>", unsafe_allow_html=True)
