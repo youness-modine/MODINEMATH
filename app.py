@@ -1,65 +1,88 @@
 import streamlit as st
 import requests
 import json
-from streamlit_lottie import st_lottie
-import time
+import fitz
+from fpdf import FPDF
 
-# --- 1. إعدادات الصفحة والهوية ---
-st.set_page_config(page_title="MODINE COPILOT", page_icon="🚀", layout="wide")
+# --- 1. إعدادات الصفحة ---
+st.set_page_config(page_title="MODINEMATH COSMOS", page_icon="ζ", layout="wide")
 
-# دالة لتحميل الأنيميشن
-def load_lottieurl(url: str):
-    try:
-        r = requests.get(url, timeout=5)
-        if r.status_code != 200: return None
-        return r.json()
-    except:
-        return None
-
-# البلاصة الأولى اللي بدلنا (الرابط الجديد)
-lottie_ai = load_lottieurl("https://lottie.host/8e202975-5282-4f72-9658-54c30c3331b2/pP6eFw6z7B.json")
-
-# --- 2. سحر الواجهة (Grok & DeepSeek Style CSS) ---
+# --- 2. سحر الأنيميشن المتقدم (HTML + CSS Injection) ---
 st.markdown("""
     <style>
-    .stApp { background: radial-gradient(circle at center, #0a0a0b 0%, #000000 100%) !important; }
-    @keyframes move-twinkle { from { background-position: 0 0; } to { background-position: -10000px 5000px; } }
-    .stApp::before {
-        content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: transparent url('https://www.transparenttextures.com/patterns/stardust.png') repeat;
-        z-index: -1; opacity: 0.3; animation: move-twinkle 200s linear infinite;
+    /* خلفية Gemini/Grok العميقة */
+    .stApp {
+        background-color: #050505 !important;
     }
-    .stTextArea textarea {
-        background: rgba(255, 255, 255, 0.05) !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        border-radius: 20px !important;
-        color: white !important;
-        padding: 25px !important;
-        font-size: 18px !important;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.5) !important;
+
+    /* تأثير التوهج للعنوان */
+    .zeta-header {
+        text-align: center;
+        font-size: 75px;
+        font-weight: 900;
+        background: linear-gradient(90deg, #00d2ff, #9b72cb, #d96570);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        filter: drop-shadow(0 0 20px rgba(0, 210, 255, 0.4));
+        margin-top: 30px;
     }
+
+    /* أنيميشن الرموز الرياضية الطائرة */
+    @keyframes float {
+        0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+        10% { opacity: 0.4; }
+        90% { opacity: 0.4; }
+        100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
+    }
+
+    .particle {
+        position: fixed;
+        top: 0;
+        color: #00d2ff;
+        font-family: 'serif';
+        font-weight: bold;
+        user-select: none;
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    /* مظهر الأزرار التفاعلي */
     div.stButton > button {
-        background: linear-gradient(90deg, #4285f4, #9b72cb) !important;
-        border: none !important; border-radius: 12px !important;
-        color: white !important; font-weight: bold !important;
-        padding: 10px 25px !important; transition: 0.3s !important;
+        background: transparent !important;
+        color: #00d2ff !important;
+        border: 2px solid #00d2ff !important;
+        border-radius: 50px !important;
+        padding: 10px 40px !important;
+        font-weight: bold !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 0 10px rgba(0, 210, 255, 0.2) !important;
     }
+
     div.stButton > button:hover {
-        box-shadow: 0 0 20px rgba(155, 114, 203, 0.6) !important;
+        background: #00d2ff !important;
+        color: #000 !important;
+        box-shadow: 0 0 40px #00d2ff !important;
         transform: scale(1.05) !important;
     }
     </style>
+
+    <div class="particle" style="left:10%; animation: float 12s infinite linear;">∫</div>
+    <div class="particle" style="left:25%; animation: float 15s infinite linear; animation-delay: 2s;">ζ</div>
+    <div class="particle" style="left:45%; animation: float 18s infinite linear; animation-delay: 5s;">∞</div>
+    <div class="particle" style="left:65%; animation: float 14s infinite linear; animation-delay: 1s;">Σ</div>
+    <div class="particle" style="left:85%; animation: float 16s infinite linear; animation-delay: 4s;">π</div>
+    <div class="particle" style="left:15%; animation: float 20s infinite linear; animation-delay: 8s;">√</div>
     """, unsafe_allow_html=True)
 
-# --- 3. محرك Groq ---
+# --- 3. محرك Groq الذكي ---
 GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
 
-def get_ai_response(prompt):
+def generate_cosmos_ans(prompt):
     url = "https://api.groq.com/openai/v1/chat/completions"
     headers = {"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"}
     payload = {
         "model": "llama3-70b-8192",
-        "messages": [{"role": "system", "content": "You are a professional Copilot. Use LaTeX for math."},
+        "messages": [{"role": "system", "content": "You are MODINEMATH, a cosmic math AI. Use LaTeX."},
                      {"role": "user", "content": prompt}],
         "stream": True
     }
@@ -73,32 +96,24 @@ def get_ai_response(prompt):
                 yield chunk['choices'][0]['delta'].get('content', '')
             except: continue
 
-# --- 4. واجهة المستخدم النهائية (البلاصة الثانية اللي بدلنا) ---
-st.write("<br><br>", unsafe_allow_html=True)
-col_l, col_r = st.columns([1, 4])
-with col_l:
-    # حماية: إذا ملقاش الأنيميشن كيعرض صاروخ 🚀 بلا ما يوقف السيت
-    if lottie_ai:
-        st_lottie(lottie_ai, height=100, key="ai_icon")
-    else:
-        st.write("🚀") 
-with col_r:
-    st.markdown("<h1 style='color:white; font-size:45px;'>MODINE COPILOT</h1>", unsafe_allow_html=True)
+# --- 4. واجهة المستخدم ---
+st.markdown('<div class="zeta-header">ζ MODINEMATH</div>', unsafe_allow_html=True)
+st.markdown("<p style='text-align:center; color:#8892b0;'>PROBING THE LIMITS OF MATHEMATICAL INTELLIGENCE</p>", unsafe_allow_html=True)
 
-user_query = st.text_area("", placeholder="What do you want to know?", height=120, label_visibility="collapsed")
+# Input area (مثل Gemini)
+user_input = st.text_area("", placeholder="Ask the Cosmic Encyclopedia...", height=120, label_visibility="collapsed")
 
-c1, c2, c3 = st.columns([1, 0.5, 1])
-with c2:
-    if st.button("Generate ✨"):
-        if user_query:
-            full_res = ""
-            res_box = st.empty()
-            for chunk in get_ai_response(user_query):
-                full_res += chunk
-                res_box.markdown(f"<div style='background:rgba(255,255,255,0.03); padding:20px; border-radius:15px; border-left:4px solid #9b72cb;'>{full_res}▌</div>", unsafe_allow_html=True)
-            res_box.markdown(f"<div style='background:rgba(255,255,255,0.03); padding:20px; border-radius:15px; border-left:4px solid #9b72cb;'>{full_res}</div>", unsafe_allow_html=True)
+col1, col2, col3 = st.columns([1, 0.6, 1])
+with col2:
+    if st.button("IGNITE SOLVER ✨"):
+        if user_input:
+            full_ans = ""
+            ans_container = st.empty()
+            for chunk in generate_cosmos_ans(user_input):
+                full_ans += chunk
+                ans_container.markdown(f'<div style="color:#00d2ff;">{full_ans}▌</div>', unsafe_allow_html=True)
+            ans_container.markdown(full_ans)
 
-st.markdown("<p style='text-align:center; color:#444746; margin-top:100px;'>Based on Groq LPU Technology | V13.0</p>", unsafe_allow_html=True)
-
+st.markdown("<br><br><p style='text-align:center; color:rgba(255,255,255,0.1);'>V12.1 | Developed by Youness Modine | UIT</p>", unsafe_allow_html=True)
 
 
