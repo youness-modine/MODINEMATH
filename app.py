@@ -46,6 +46,18 @@ st.markdown("""
         background: #00bcff !important; color: #000 !important;
         box-shadow: 0 0 40px #00bcff !important; transform: scale(1.05) !important;
     }
+    
+    /* تعديل عرض حاوية الجواب ليكون عريضاً جداً */
+    .response-container {
+        color: #ffffff; 
+        background: rgba(255,255,255,0.05); 
+        padding: 30px; 
+        border-radius: 15px;
+        width: 100%;
+        margin-top: 20px;
+        font-size: 18px;
+        line-height: 1.6;
+    }
     </style>
 
     <div class="particle" style="left:5%; animation-duration: 14s, 5s;">β</div>
@@ -65,7 +77,7 @@ st.markdown("""
     <div class="particle" style="left:15%; animation-duration: 20s, 10s; animation-delay: 8s, 0s;">√</div>
     """, unsafe_allow_html=True)
 
-# --- 3. محرك Groq (The Newest Model) ---
+# --- 3. محرك Groq (Llama 3.3) ---
 GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
 
 def generate_cosmos_ans(prompt):
@@ -89,14 +101,18 @@ def generate_cosmos_ans(prompt):
 st.markdown('<div class="zeta-header">ζ MODINEMATH</div>', unsafe_allow_html=True)
 st.markdown("<p style='text-align:center; color:#ffffff; opacity:0.7;'>PROBING THE LIMITS OF MATHEMATICAL INTELLIGENCE</p>", unsafe_allow_html=True)
 
-user_input = st.text_area("", placeholder="Ask the Cosmic Encyclopedia...", height=120, label_visibility="collapsed")
+# خانة السؤال العريضة
+user_input = st.text_area("", placeholder="Ask the Cosmic Encyclopedia...", height=150, label_visibility="collapsed")
 
-col1, col2, col3 = st.columns([1, 0.6, 1])
-with col2:
-    if st.button("IGNITE SOLVER ✨"):
-        if user_input:
-            with st.spinner("Analyzing the Cosmos..."):
-                ans = generate_cosmos_ans(user_input)
-                st.markdown(f'<div style="color:#ffffff; background: rgba(255,255,255,0.05); padding: 20px; border-radius: 15px;">{ans}</div>', unsafe_allow_html=True)
+# البوطونة في الوسط
+col_btn1, col_btn2, col_btn3 = st.columns([1, 0.4, 1])
+with col_btn2:
+    submit = st.button("IGNITE SOLVER ✨")
 
-st.markdown("<br><br><p style='text-align:center; color:rgba(255,255,255,0.2);'>V12.6 | Llama 3.3 Edition | Youness Modine</p>", unsafe_allow_html=True)
+# عرض الجواب بعرض الشاشة كامل
+if submit and user_input:
+    with st.spinner("Analyzing the Cosmos..."):
+        ans = generate_cosmos_ans(user_input)
+        st.markdown(f'<div class="response-container">{ans}</div>', unsafe_allow_html=True)
+
+st.markdown("<br><br><p style='text-align:center; color:rgba(255,255,255,0.2);'>V12.7 | Wide Display Edition | Youness Modine</p>", unsafe_allow_html=True)
