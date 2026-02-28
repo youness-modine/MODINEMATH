@@ -4,3 +4,6 @@ pymupdf
 fpdf
 pillow
 streamlit-lottie
+pandas
+openpyxl
+python-docx
