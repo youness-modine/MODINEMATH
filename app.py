@@ -1,27 +1,26 @@
 import streamlit as st
-import requests
 import google.generativeai as genai
+import requests
 
-# --- 1. جلب وتنظيف السوارت (حماية من الفراغات) ---
-GROQ_KEY = st.secrets["GROQ_API_KEY"].strip().replace("\n", "").replace(" ", "")
-GEMINI_KEY = st.secrets["GEMINI_API_KEY"].strip().replace("\n", "").replace(" ", "")
+# جلب وتنظيف السوارت أوتوماتيكياً
+GROQ_KEY = st.secrets["GROQ_API_KEY"].strip().replace('"', '')
+GEMINI_KEY = st.secrets["GEMINI_API_KEY"].strip().replace('"', '')
 
-# --- 2. إعداد Gemini ---
+# إعداد العقول
 genai.configure(api_key=GEMINI_KEY)
-# التعديل لضمان التوافق مع v1beta
-gemini_model = genai.GenerativeModel('gemini-1.5-pro')
+gemini_model = genai.GenerativeModel('gemini-1.5-pro') # النسخة المستقرة
 
 def solve_with_deepseek(prompt):
     url = "https://api.groq.com/openai/v1/chat/completions"
     headers = {"Authorization": f"Bearer {GROQ_KEY}", "Content-Type": "application/json"}
     payload = {
-        "model": "deepseek-r1-distill-llama-70b",
-        "messages": [{"role": "system", "content": "You are MODINEMATH. Use LaTeX for math proofs."},
-                     {"role": "user", "content": prompt}]
+        "model": "deepseek-r1-distill-llama-70b", # ذكاء DeepSeek بساروت Groq
+        "messages": [{"role": "user", "content": prompt}]
     }
-    response = requests.post(url, headers=headers, json=payload, timeout=60)
+    response = requests.post(url, headers=headers, json=payload)
     return response.json()['choices'][0]['message']['content']
 
+# باقي واجهة MODINEMATH...
 # --- 3. الواجهة ---
 st.markdown("<h1 style='text-align: center; color: #00bcff;'>ζ MODINEMATH</h1>", unsafe_allow_html=True)
 
@@ -51,3 +50,4 @@ if st.button("IGNITE SOLVER ✨"):
             except Exception as e:
                 # إذا رجع الخطأ 404، غانعرفو بلي المشكل في الساروت أو الموديل
                 st.error(f"Cosmos Error: {str(e)}")
+
